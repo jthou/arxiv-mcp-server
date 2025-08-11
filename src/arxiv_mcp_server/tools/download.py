@@ -24,7 +24,7 @@ class ConversionStatus:
     """Track the status of a PDF to Markdown conversion."""
 
     paper_id: str
-    status: str  # 'downloading', 'converting', 'completed', 'failed'
+    status: str  # 'downloading', 'converting', 'success', 'error'
     started_at: datetime
     completed_at: Optional[datetime] = None
     error: Optional[str] = None
@@ -70,18 +70,17 @@ def convert_pdf_to_markdown(paper_id: str, pdf_path: Path) -> None:
 
         status = conversion_statuses.get(paper_id)
         if status:
-            status.status = "completed"
+            status.status = "success"
             status.completed_at = datetime.now()
 
         # Clean up PDF after successful conversion
-        pdf_path.unlink()
         logger.info(f"Conversion completed for {paper_id}")
 
     except Exception as e:
         logger.error(f"Conversion failed for {paper_id}: {str(e)}")
         status = conversion_statuses.get(paper_id)
         if status:
-            status.status = "failed"
+            status.status = "error"
             status.completed_at = datetime.now()
             status.error = str(e)
 
@@ -102,7 +101,7 @@ async def handle_download(arguments: Dict[str, Any]) -> List[types.TextContent]:
                             type="text",
                             text=json.dumps(
                                 {
-                                    "status": "completed",
+                                    "status": "success",
                                     "message": "Paper is ready",
                                     "resource_uri": f"file://{get_paper_path(paper_id, '.md')}",
                                 }
@@ -147,7 +146,7 @@ async def handle_download(arguments: Dict[str, Any]) -> List[types.TextContent]:
                     type="text",
                     text=json.dumps(
                         {
-                            "status": "completed",
+                            "status": "success",
                             "message": "Paper already available",
                             "resource_uri": f"file://{get_paper_path(paper_id, '.md')}",
                         }

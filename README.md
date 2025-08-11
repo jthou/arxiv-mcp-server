@@ -1,36 +1,48 @@
-# ArXiv MCP Server 📚 
-
-[![Stars](https://img.shields.io/github/stars/blazickjp/arxiv-mcp-server?style=social)](https://github.com/blazickjp/arxiv-mcp-server/stargazers)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Twitter Follow](https://img.shields.io/twitter/follow/JoeBlazick?style=social)](https://twitter.com/JoeBlazick)
+[![smithery badge](https://smithery.ai/badge/arxiv-mcp-server)](https://smithery.ai/server/arxiv-mcp-server)
 [![Python Version](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![Tests](https://github.com/blazickjp/arxiv-mcp-server/workflows/Tests/badge.svg)](https://github.com/blazickjp/arxiv-mcp-server/actions)
+[![Tests](https://github.com/blazickjp/arxiv-mcp-server/actions/workflows/tests.yml/badge.svg)](https://github.com/blazickjp/arxiv-mcp-server/actions/workflows/tests.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![PyPI Downloads](https://img.shields.io/pypi/dm/arxiv-mcp-server.svg)](https://pypi.org/project/arxiv-mcp-server/)
+[![PyPI Version](https://img.shields.io/pypi/v/arxiv-mcp-server.svg)](https://pypi.org/project/arxiv-mcp-server/)
 
-> 🔍 Empower AI models with direct access to academic research through an elegant MCP interface.
+# ArXiv MCP Server
 
-The ArXiv MCP Server bridges the gap between AI models and academic research by providing a sophisticated interface to arXiv's extensive research repository. This server enables AI assistants to perform precise paper searches and access full paper content, enhancing their ability to engage with scientific literature.
+> 🔍 Enable AI assistants to search and access arXiv papers through a simple MCP interface.
+
+The ArXiv MCP Server provides a bridge between AI assistants and arXiv's research repository through the Model Context Protocol (MCP). It allows AI models to search for papers and access their content in a programmatic way.
 
 <div align="center">
   
-🌟 **[View Demo](https://github.com/blazickjp/arxiv-mcp-server#demo)** • 
-📖 **[Documentation](https://github.com/blazickjp/arxiv-mcp-server/wiki)** • 
 🤝 **[Contribute](https://github.com/blazickjp/arxiv-mcp-server/blob/main/CONTRIBUTING.md)** • 
 📝 **[Report Bug](https://github.com/blazickjp/arxiv-mcp-server/issues)**
 
+<a href="https://www.pulsemcp.com/servers/blazickjp-arxiv-mcp-server"><img src="https://www.pulsemcp.com/badge/top-pick/blazickjp-arxiv-mcp-server" width="400" alt="Pulse MCP Badge"></a>
 </div>
 
 ## ✨ Core Features
 
-- 🔎 **Advanced Search**: Precise queries with date ranges and category filters
-- 📥 **Smart Downloads**: Papers become instantly accessible MCP resources
-- 🚀 **Async Architecture**: Built for performance and scalability
-- 💾 **Local Caching**: Efficient repeated access to frequently used papers
+- 🔎 **Paper Search**: Query arXiv papers with filters for date ranges and categories
+- 📄 **Paper Access**: Download and read paper content
+- 📋 **Paper Listing**: View all downloaded papers
+- 🗃️ **Local Storage**: Papers are saved locally for faster access
+- 📝 **Prompts**: A Set of Research Prompts
 
 ## 🚀 Quick Start
 
+### Installing via Smithery
+
+To install ArXiv Server for Claude Desktop automatically via [Smithery](https://smithery.ai/server/arxiv-mcp-server):
+
+```bash
+npx -y @smithery/cli install arxiv-mcp-server --client claude
+```
+
+### Installing Manually
 Install using uv:
 
 ```bash
-uv pip install git+https://github.com/blazickjp/arxiv-mcp-server.git
+uv tool install arxiv-mcp-server
 ```
 
 For development:
@@ -48,12 +60,9 @@ source .venv/bin/activate
 uv pip install -e ".[test]"
 ```
 
-### 🔌 Claude Desktop Integration
+### 🔌 MCP Integration
 
-Add this configuration to your Claude Desktop config file to enable ArXiv paper access:
-
-<details>
-<summary>📝 Click to view configuration</summary>
+Add this configuration to your MCP client config file:
 
 ```json
 {
@@ -61,53 +70,53 @@ Add this configuration to your Claude Desktop config file to enable ArXiv paper 
         "arxiv-mcp-server": {
             "command": "uv",
             "args": [
+                "tool",
                 "run",
                 "arxiv-mcp-server",
-                "--storage-path", "/path/to/paper/storage",
-                "--max-results", "50",
-                "--timeout", "30"
+                "--storage-path", "/path/to/paper/storage"
             ]
         }
     }
 }
 ```
-</details>
 
-Make sure to adjust the storage path and other parameters according to your needs. This configuration enables Claude to search and access ArXiv papers directly through the MCP server.
+For Development:
 
-## 💡 Usage
-
-### Paper Search
-Search with precision using multiple criteria:
-
-```python
-# Example: Find recent AI papers
-result = await call_tool("search_papers", {
-    "query": "transformer architecture applications",
-    "max_results": 10,
-    "date_from": "2023-01-01",
-    "categories": ["cs.AI", "cs.LG"],
-})
-
-# Response includes detailed metadata
+```json
 {
-    "total_results": 10,
-    "papers": [
-        {
-            "id": "2401.12345",
-            "title": "Example Paper Title",
-            "authors": ["Author Name"],
-            "abstract": "Paper abstract...",
-            "categories": ["cs.AI"],
-            "published": "2024-01-15T00:00:00Z",
-            "resource_uri": "arxiv://2401.12345"
+    "mcpServers": {
+        "arxiv-mcp-server": {
+            "command": "uv",
+            "args": [
+                "--directory",
+                "path/to/cloned/arxiv-mcp-server",
+                "run",
+                "arxiv-mcp-server",
+                "--storage-path", "/path/to/paper/storage"
+            ]
         }
-    ]
+    }
 }
 ```
 
-### Paper Download
-Transform papers into accessible resources:
+## 💡 Available Tools
+
+The server provides four main tools:
+
+### 1. Paper Search
+Search for papers with optional filters:
+
+```python
+result = await call_tool("search_papers", {
+    "query": "transformer architecture",
+    "max_results": 10,
+    "date_from": "2023-01-01",
+    "categories": ["cs.AI", "cs.LG"]
+})
+```
+
+### 2. Paper Download
+Download a paper by its arXiv ID:
 
 ```python
 result = await call_tool("download_paper", {
@@ -115,65 +124,62 @@ result = await call_tool("download_paper", {
 })
 ```
 
+### 3. List Papers
+View all downloaded papers:
+
+```python
+result = await call_tool("list_papers", {})
+```
+
+### 4. Read Paper
+Access the content of a downloaded paper:
+
+```python
+result = await call_tool("read_paper", {
+    "paper_id": "2401.12345"
+})
+```
+
+## 📝 Research Prompts
+
+The server offers specialized prompts to help analyze academic papers:
+
+### Paper Analysis Prompt
+A comprehensive workflow for analyzing academic papers that only requires a paper ID:
+
+```python
+result = await call_prompt("deep-paper-analysis", {
+    "paper_id": "2401.12345"
+})
+```
+
+This prompt includes:
+- Detailed instructions for using available tools (list_papers, download_paper, read_paper, search_papers)
+- A systematic workflow for paper analysis
+- Comprehensive analysis structure covering:
+  - Executive summary
+  - Research context
+  - Methodology analysis
+  - Results evaluation
+  - Practical and theoretical implications
+  - Future research directions
+  - Broader impacts
+
 ## ⚙️ Configuration
 
-Customize through environment variables:
+Configure through environment variables:
 
 | Variable | Purpose | Default |
 |----------|---------|---------|
 | `ARXIV_STORAGE_PATH` | Paper storage location | ~/.arxiv-mcp-server/papers |
-| `ARXIV_MAX_RESULTS` | Search results limit | 50 |
-| `ARXIV_REQUEST_TIMEOUT` | API timeout (seconds) | 30 |
 
-## 🧪 Development
+## 🧪 Testing
 
-Run the comprehensive test suite:
+Run the test suite:
 
 ```bash
 python -m pytest
 ```
-
-The test suite provides:
-- ✅ Unit tests for components
-- 🔄 Integration tests for MCP compliance
-- 🎭 Mock-based service testing
-- 📊 Coverage reporting
-
-## 🏗️ Technical Architecture
-
-Our modular design consists of four key components:
-
-1. 🛠️ **Tool Layer**: MCP protocol interface
-2. 📚 **Resource Management**: Paper storage and retrieval
-3. 🔌 **Service Layer**: ArXiv API integration
-4. ⚙️ **Configuration**: Environment-based settings
-
-## 🤝 Contributing
-
-We enthusiastically welcome contributions! To get started:
-
-1. 🍴 Fork the repository
-2. 🌿 Create a feature branch
-3. ✨ Make your enhancements
-4. ✅ Ensure tests pass
-5. 📝 Update documentation
-6. 🚀 Submit a pull request
-
-## 📦 Dependencies
-
-### Core
-- 📚 arxiv>=2.1.0
-- 🔌 mcp>=1.0.0
-- 🌐 aiohttp>=3.9.1
-- ✨ pydantic>=2.8.0
-- 📅 python-dateutil>=2.8.2
-- 📁 aiofiles>=23.2.1
-
-### Development
-- 🧪 pytest>=8.0.0
-- ⚡ pytest-asyncio>=0.23.5
-- 📊 pytest-cov>=4.1.0
-- 🎭 pytest-mock>=3.10.0
 
 ## 📄 License
 
@@ -183,8 +189,7 @@ Released under the MIT License. See the LICENSE file for details.
 
 <div align="center">
 
-Made with ❤️ by the ArXiv MCP Server Team
+Made with ❤️ by the Pearl Labs Team
 
-If you find this project helpful, please consider giving it a star ⭐
-
+<a href="https://glama.ai/mcp/servers/04dtxi5i5n"><img width="380" height="200" src="https://glama.ai/mcp/servers/04dtxi5i5n/badge" alt="ArXiv Server MCP server" /></a>
 </div>

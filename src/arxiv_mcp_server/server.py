@@ -2,66 +2,46 @@
 Arxiv MCP Server
 ===============
 
-This module implements an MCP (Message Control Protocol) server for interacting with arXiv.
-It provides capabilities for searching papers and downloading them as resources.
+This module implements an MCP server for interacting with arXiv.
 """
 
 import logging
 import mcp.types as types
 from typing import Dict, Any, List
+from mcp.server import Server
+from mcp.server.models import InitializationOptions
+from mcp.server import NotificationOptions
+from mcp.server.stdio import stdio_server
 from .config import Settings
 from .tools import handle_search, handle_download, handle_list_papers, handle_read_paper
 from .tools import search_tool, download_tool, list_tool, read_tool
-from .resources import PaperManager
-from mcp.server import Server, InitializationOptions, NotificationOptions, stdio_server
+from .prompts.handlers import list_prompts as handler_list_prompts
+from .prompts.handlers import get_prompt as handler_get_prompt
 
-# Initialize server settings and paper manager
 settings = Settings()
-paper_manager = PaperManager()
-
 logger = logging.getLogger("arxiv-mcp-server")
 logger.setLevel(logging.INFO)
-
-# Initialize MCP server
-server = Server(name=settings.APP_NAME)
+server = Server(settings.APP_NAME)
 
 
-# @server.list_resources()
-# async def list_resources() -> List[types.Resource]:
-#     """List available paper resources."""
-#     logger.info("Listing resources")
-#     resources = await paper_manager.list_resources()
-#     logger.info(f"Found {len(resources)} resources")
-#     return resources
+@server.list_prompts()
+async def list_prompts() -> List[types.Prompt]:
+    """List available prompts."""
+    return await handler_list_prompts()
 
 
-# @server.read_resource()
-# async def read_resource(uri: AnyUrl) -> str:
-#     """Read the content of a paper resource."""
-#     assert uri.path is not None
-#     paper_id = Path(uri.path).stem
-#     return await paper_manager.get_paper_content(paper_id)
-
-
-# @server.set_logging_level()
-# async def set_logging_level(level: types.LoggingLevel) -> types.EmptyResult:
-#     """Set the server logging level."""
-#     logger.setLevel(level.upper())
-#     await server.request_context.session.send_log_message(
-#         level="debug", data=f"Log level set to {level}", logger="arxiv-mcp-server"
-#     )
-#     return types.EmptyResult()
+@server.get_prompt()
+async def get_prompt(
+    name: str, arguments: Dict[str, str] | None = None
+) -> types.GetPromptResult:
+    """Get a specific prompt with arguments."""
+    return await handler_get_prompt(name, arguments)
 
 
 @server.list_tools()
 async def list_tools() -> List[types.Tool]:
     """List available arXiv research tools."""
-    return [
-        search_tool,
-        download_tool,
-        list_tool,
-        read_tool,
-    ]
+    return [search_tool, download_tool, list_tool, read_tool]
 
 
 @server.call_tool()
