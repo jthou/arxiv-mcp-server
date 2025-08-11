@@ -68,7 +68,7 @@ def test_validate_categories():
     # Valid categories
     assert _validate_categories(["cs.AI", "cs.LG"])
     assert _validate_categories(["math.CO", "physics.gen-ph"])
-    
+
     # Invalid categories
     assert not _validate_categories(["invalid.category"])
     assert not _validate_categories(["cs.AI", "invalid.test"])
@@ -80,14 +80,14 @@ def test_build_date_filter():
     filter_str = _build_date_filter("2023-01-01", "2023-12-31")
     assert "submittedDate:[20230101" in filter_str
     assert "20231231" in filter_str
-    
+
     # Test with only start date
     filter_str = _build_date_filter("2023-01-01", None)
     assert "submittedDate:[20230101" in filter_str
-    
+
     # Test with no dates
     assert _build_date_filter(None, None) == ""
-    
+
     # Test with invalid date
     with pytest.raises(ValueError):
         _build_date_filter("invalid-date", None)
@@ -101,10 +101,10 @@ async def test_search_with_invalid_categories(mock_client):
             {
                 "query": "test query",
                 "categories": ["invalid.category"],
-                "max_results": 1
+                "max_results": 1,
             }
         )
-        
+
         assert "Error: Invalid category" in result[0].text
 
 
@@ -113,29 +113,26 @@ async def test_search_empty_query(mock_client):
     """Test search with empty query but categories."""
     with patch("arxiv.Client", return_value=mock_client):
         result = await handle_search(
-            {
-                "query": "",
-                "categories": ["cs.AI"],
-                "max_results": 1
-            }
+            {"query": "", "categories": ["cs.AI"], "max_results": 1}
         )
-        
+
         # Should still work with just categories
         content = json.loads(result[0].text)
         assert "papers" in content
 
 
-@pytest.mark.asyncio 
+@pytest.mark.asyncio
 async def test_search_arxiv_error(mock_client):
     """Test handling of arXiv API errors."""
     import arxiv
+
     # Create proper ArxivError with required parameters
     error = arxiv.ArxivError("http://example.com", retry=3, message="API Error")
     mock_client.results.side_effect = error
-    
+
     with patch("arxiv.Client", return_value=mock_client):
         result = await handle_search({"query": "test", "max_results": 1})
-        
+
         assert "ArXiv API error" in result[0].text
 
 
@@ -145,7 +142,7 @@ async def test_search_max_results_limiting(mock_client):
     with patch("arxiv.Client", return_value=mock_client):
         # Test that very large max_results gets capped
         result = await handle_search({"query": "test", "max_results": 1000})
-        
+
         # Should not fail and should be limited by settings.MAX_RESULTS
         content = json.loads(result[0].text)
         assert "papers" in content

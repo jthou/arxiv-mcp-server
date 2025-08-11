@@ -14,9 +14,26 @@ settings = Settings()
 
 # Valid arXiv category prefixes for validation
 VALID_CATEGORIES = {
-    "cs", "econ", "eess", "math", "physics", "q-bio", "q-fin", "stat",
-    "astro-ph", "cond-mat", "gr-qc", "hep-ex", "hep-lat", "hep-ph", "hep-th",
-    "math-ph", "nlin", "nucl-ex", "nucl-th", "quant-ph"
+    "cs",
+    "econ",
+    "eess",
+    "math",
+    "physics",
+    "q-bio",
+    "q-fin",
+    "stat",
+    "astro-ph",
+    "cond-mat",
+    "gr-qc",
+    "hep-ex",
+    "hep-lat",
+    "hep-ph",
+    "hep-th",
+    "math-ph",
+    "nlin",
+    "nucl-ex",
+    "nucl-th",
+    "quant-ph",
 }
 
 search_tool = types.Tool(
@@ -72,25 +89,25 @@ TIPS FOR FOUNDATIONAL RESEARCH:
         "type": "object",
         "properties": {
             "query": {
-                "type": "string", 
-                "description": "Search query using quoted phrases for exact matches (e.g., '\"machine learning\" OR \"deep learning\"') or specific technical terms. Avoid overly broad or generic terms."
+                "type": "string",
+                "description": 'Search query using quoted phrases for exact matches (e.g., \'"machine learning" OR "deep learning"\') or specific technical terms. Avoid overly broad or generic terms.',
             },
             "max_results": {
-                "type": "integer", 
-                "description": "Maximum number of results to return (default: 10, max: 50). Use 15-20 for comprehensive searches."
+                "type": "integer",
+                "description": "Maximum number of results to return (default: 10, max: 50). Use 15-20 for comprehensive searches.",
             },
             "date_from": {
-                "type": "string", 
-                "description": "Start date for papers (YYYY-MM-DD format). Use to find recent work, e.g., '2023-01-01' for last 2 years."
+                "type": "string",
+                "description": "Start date for papers (YYYY-MM-DD format). Use to find recent work, e.g., '2023-01-01' for last 2 years.",
             },
             "date_to": {
-                "type": "string", 
-                "description": "End date for papers (YYYY-MM-DD format). Use with date_from to find historical work, e.g., '2020-12-31' for older research."
+                "type": "string",
+                "description": "End date for papers (YYYY-MM-DD format). Use with date_from to find historical work, e.g., '2020-12-31' for older research.",
             },
             "categories": {
-                "type": "array", 
+                "type": "array",
                 "items": {"type": "string"},
-                "description": "Strongly recommended: arXiv categories to focus search (e.g., ['cs.AI', 'cs.MA'] for agent research, ['cs.LG'] for ML, ['cs.CL'] for NLP, ['cs.CV'] for vision). Greatly improves relevance."
+                "description": "Strongly recommended: arXiv categories to focus search (e.g., ['cs.AI', 'cs.MA'] for agent research, ['cs.LG'] for ML, ['cs.CL'] for NLP, ['cs.CV'] for vision). Greatly improves relevance.",
             },
         },
         "required": ["query"],
@@ -114,26 +131,34 @@ def _validate_categories(categories: List[str]) -> bool:
 def _optimize_query(query: str) -> str:
     """Optimize search query for better arXiv results."""
     terms = query.split()
-    
+
     # For complex queries (>4 terms), use OR logic for better recall
     if len(terms) > 4:
         logger.debug(f"Complex query detected with {len(terms)} terms - using OR logic")
-        
+
         # Group related terms with OR
         key_phrases = [
-            "artificial intelligence", "machine learning", "deep learning", 
-            "neural network", "natural language processing", "computer vision",
-            "cognitive architecture", "autonomous reasoning", "agent-based",
-            "reinforcement learning", "large language model", "multi-agent"
+            "artificial intelligence",
+            "machine learning",
+            "deep learning",
+            "neural network",
+            "natural language processing",
+            "computer vision",
+            "cognitive architecture",
+            "autonomous reasoning",
+            "agent-based",
+            "reinforcement learning",
+            "large language model",
+            "multi-agent",
         ]
-        
+
         # First handle key phrases
         optimized_query = query.lower()
         for phrase in key_phrases:
             if phrase in optimized_query:
                 optimized_query = optimized_query.replace(phrase, f'"{phrase}"')
                 logger.debug(f"Added quotes around: {phrase}")
-        
+
         # For very complex queries, convert to OR logic to increase recall
         if len(terms) > 6:
             # Split into core terms and use OR
@@ -146,21 +171,21 @@ def _optimize_query(query: str) -> str:
                     # Find the end of the quoted phrase
                     phrase_parts = [words[i]]
                     i += 1
-                    while i < len(words) and not words[i-1].endswith('"'):
+                    while i < len(words) and not words[i - 1].endswith('"'):
                         phrase_parts.append(words[i])
                         i += 1
-                    or_terms.append(' '.join(phrase_parts))
+                    or_terms.append(" ".join(phrase_parts))
                 else:
                     or_terms.append(words[i])
                     i += 1
-            
+
             if len(or_terms) > 3:
                 # Use OR for better recall
-                optimized_query = ' OR '.join(or_terms[:5])  # Limit to 5 terms
+                optimized_query = " OR ".join(or_terms[:5])  # Limit to 5 terms
                 logger.debug(f"Converted to OR logic: {optimized_query}")
-        
+
         return optimized_query
-    
+
     return query
 
 
@@ -168,19 +193,19 @@ def _build_date_filter(date_from: str = None, date_to: str = None) -> str:
     """Build arXiv API date filter using submittedDate syntax."""
     if not date_from and not date_to:
         return ""
-    
+
     try:
         # Parse and format dates for arXiv API (YYYYMMDDTTTT format where TTTT is time to minute)
         if date_from:
             start_date = parser.parse(date_from).strftime("%Y%m%d0000")
         else:
             start_date = "199107010000"  # arXiv started July 1991
-            
+
         if date_to:
             end_date = parser.parse(date_to).strftime("%Y%m%d2359")
         else:
             end_date = datetime.now().strftime("%Y%m%d2359")
-            
+
         return f"submittedDate:[{start_date}+TO+{end_date}]"
     except (ValueError, TypeError) as e:
         logger.error(f"Error parsing dates: {e}")
@@ -207,30 +232,34 @@ async def handle_search(arguments: Dict[str, Any]) -> List[types.TextContent]:
         client = arxiv.Client()
         max_results = min(int(arguments.get("max_results", 10)), settings.MAX_RESULTS)
         base_query = arguments["query"]
-        
-        logger.debug(f"Starting search with query: '{base_query}', max_results: {max_results}")
+
+        logger.debug(
+            f"Starting search with query: '{base_query}', max_results: {max_results}"
+        )
 
         # Build query components
         query_parts = []
-        
+
         # Add base query with optimization
         if base_query.strip():
             optimized_query = _optimize_query(base_query)
             query_parts.append(f"({optimized_query})")
             if optimized_query != base_query:
                 logger.debug(f"Optimized query: '{base_query}' -> '{optimized_query}'")
-        
+
         # Add category filtering
         if categories := arguments.get("categories"):
             if not _validate_categories(categories):
-                return [types.TextContent(
-                    type="text", 
-                    text="Error: Invalid category provided. Please check arXiv category names."
-                )]
+                return [
+                    types.TextContent(
+                        type="text",
+                        text="Error: Invalid category provided. Please check arXiv category names.",
+                    )
+                ]
             category_filter = " OR ".join(f"cat:{cat}" for cat in categories)
             query_parts.append(f"({category_filter})")
             logger.debug(f"Added category filter: {category_filter}")
-        
+
         # Add date filtering using arXiv API syntax
         # Temporarily disable server-side date filtering due to API issues
         # Will filter client-side for now
@@ -239,14 +268,15 @@ async def handle_search(arguments: Dict[str, Any]) -> List[types.TextContent]:
         if date_from_arg or date_to_arg:
             logger.debug(f"Date filtering requested: {date_from_arg} to {date_to_arg}")
             # We'll handle this client-side after getting results
-        
+
         # Combine query parts
         if not query_parts:
-            return [types.TextContent(
-                type="text", 
-                text="Error: No search criteria provided"
-            )]
-            
+            return [
+                types.TextContent(
+                    type="text", text="Error: No search criteria provided"
+                )
+            ]
+
         # Combine query parts - arXiv uses space for AND by default
         final_query = " ".join(query_parts)
         logger.debug(f"Final arXiv query: {final_query}")
@@ -254,7 +284,7 @@ async def handle_search(arguments: Dict[str, Any]) -> List[types.TextContent]:
         # Increase max_results slightly to account for any edge cases
         # but cap it to avoid overwhelming the API
         api_max_results = min(max_results + 5, settings.MAX_RESULTS)
-        
+
         # Use relevance sorting for better results (not just newest papers)
         search = arxiv.Search(
             query=final_query,
@@ -265,36 +295,46 @@ async def handle_search(arguments: Dict[str, Any]) -> List[types.TextContent]:
         # Process results with client-side date filtering
         results = []
         result_count = 0
-        
+
         # Parse date filters if provided
         date_from_parsed = None
         date_to_parsed = None
         if date_from_arg:
             try:
-                date_from_parsed = parser.parse(date_from_arg).replace(tzinfo=timezone.utc)
+                date_from_parsed = parser.parse(date_from_arg).replace(
+                    tzinfo=timezone.utc
+                )
             except (ValueError, TypeError) as e:
-                return [types.TextContent(type="text", text=f"Error: Invalid date_from format - {str(e)}")]
-        
+                return [
+                    types.TextContent(
+                        type="text", text=f"Error: Invalid date_from format - {str(e)}"
+                    )
+                ]
+
         if date_to_arg:
             try:
                 date_to_parsed = parser.parse(date_to_arg).replace(tzinfo=timezone.utc)
             except (ValueError, TypeError) as e:
-                return [types.TextContent(type="text", text=f"Error: Invalid date_to format - {str(e)}")]
-        
+                return [
+                    types.TextContent(
+                        type="text", text=f"Error: Invalid date_to format - {str(e)}"
+                    )
+                ]
+
         for paper in client.results(search):
             if result_count >= max_results:
                 break
-            
+
             # Apply client-side date filtering
             paper_date = paper.published
             if not paper_date.tzinfo:
                 paper_date = paper_date.replace(tzinfo=timezone.utc)
-                
+
             if date_from_parsed and paper_date < date_from_parsed:
                 continue
             if date_to_parsed and paper_date > date_to_parsed:
                 continue
-                
+
             results.append(_process_paper(paper))
             result_count += 1
 
@@ -307,7 +347,9 @@ async def handle_search(arguments: Dict[str, Any]) -> List[types.TextContent]:
 
     except arxiv.ArxivError as e:
         logger.error(f"ArXiv API error: {e}")
-        return [types.TextContent(type="text", text=f"Error: ArXiv API error - {str(e)}")]
+        return [
+            types.TextContent(type="text", text=f"Error: ArXiv API error - {str(e)}")
+        ]
     except Exception as e:
         logger.error(f"Unexpected search error: {e}")
         return [types.TextContent(type="text", text=f"Error: {str(e)}")]
