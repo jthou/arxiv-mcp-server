@@ -5,9 +5,9 @@ from pathlib import Path
 import arxiv
 from typing import Dict, Any, List, Optional
 import mcp.types as types
-from ..config import Settings
+from ..config import get_settings
 
-settings = Settings()
+settings = get_settings()
 
 list_tool = types.Tool(
     name="list_papers",

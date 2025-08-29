@@ -4,9 +4,9 @@ import json
 from pathlib import Path
 from typing import Dict, Any, List
 import mcp.types as types
-from ..config import Settings
+from ..config import get_settings
 
-settings = Settings()
+settings = get_settings()
 
 read_tool = types.Tool(
     name="read_paper",

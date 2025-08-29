@@ -8,12 +8,12 @@ from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
 from datetime import datetime
 import mcp.types as types
-from ..config import Settings
+from ..config import get_settings
 import pymupdf4llm
 import logging
 
 logger = logging.getLogger("arxiv-mcp-server")
-settings = Settings()
+settings = get_settings()
 
 # Global dictionary to track conversion status
 conversion_statuses: Dict[str, Any] = {}
@@ -87,10 +87,10 @@ def convert_pdf_to_markdown(paper_id: str, pdf_path: Path) -> None:
 
 async def handle_download(arguments: Dict[str, Any]) -> List[types.TextContent]:
     """Handle paper download and conversion requests."""
+    paper_id = arguments["paper_id"]
+    check_status = arguments.get("check_status", False)
+    
     try:
-        paper_id = arguments["paper_id"]
-        check_status = arguments.get("check_status", False)
-
         # If only checking status
         if check_status:
             status = conversion_statuses.get(paper_id)
@@ -174,13 +174,14 @@ async def handle_download(arguments: Dict[str, Any]) -> List[types.TextContent]:
         pdf_path = get_paper_path(paper_id, ".pdf")
         client = arxiv.Client()
 
-        # Initialize status
+        # Download PDF first (在初始化状态之前执行可能抛出异常的代码)
+        paper = next(client.results(arxiv.Search(id_list=[paper_id])))
+        
+        # Initialize status only after successful paper retrieval
         conversion_statuses[paper_id] = ConversionStatus(
             paper_id=paper_id, status="downloading", started_at=datetime.now()
         )
 
-        # Download PDF
-        paper = next(client.results(arxiv.Search(id_list=[paper_id])))
         paper.download_pdf(dirpath=pdf_path.parent, filename=pdf_path.name)
 
         # Update status and start conversion
@@ -206,6 +207,9 @@ async def handle_download(arguments: Dict[str, Any]) -> List[types.TextContent]:
         ]
 
     except StopIteration:
+        # 清理可能已创建的状态
+        if paper_id in conversion_statuses:
+            del conversion_statuses[paper_id]
         return [
             types.TextContent(
                 type="text",
@@ -218,6 +222,9 @@ async def handle_download(arguments: Dict[str, Any]) -> List[types.TextContent]:
             )
         ]
     except Exception as e:
+        # 清理可能已创建的状态
+        if paper_id in conversion_statuses:
+            del conversion_statuses[paper_id]
         return [
             types.TextContent(
                 type="text",
