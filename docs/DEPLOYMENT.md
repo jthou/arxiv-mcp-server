@@ -5,7 +5,6 @@
 - Git
 - curl
 - 可选: uv (Astral) (用于更快的依赖安装)
-- 可选: Docker (用于容器化部署)
 
 ## 部署选项
 
@@ -41,27 +40,7 @@ pip install -e .
 python -m arxiv_mcp_server --storage-path /path/to/paper/storage
 ```
 
-### 3. 使用deploy.sh脚本部署
-```bash
-# 当前已在项目目录中
-# 查看当前仓库信息
-git remote -v
-git status
-
-# 运行部署脚本
-chmod +x scripts/deploy.sh
-./scripts/deploy.sh
-```
-
-### 4. 使用show-help.sh脚本查看帮助
-```bash
-# 当前已在项目目录中
-# 查看帮助信息
-chmod +x scripts/show-help.sh
-./scripts/show-help.sh
-```
-
-### 5. 使用uv工具部署
+### 3. 使用uv工具部署
 ```bash
 # 安装uv (如果尚未安装)
 # macOS: brew install uv
@@ -75,24 +54,12 @@ uv tool install arxiv-mcp-server
 arxiv-mcp-server --storage-path /path/to/paper/storage
 ```
 
-### 6. Docker部署
+### 4. 使用show-help.sh脚本查看帮助
 ```bash
-# 构建并运行Docker容器
-./scripts/docker-build.sh
-
-# 或者手动构建和运行
-docker build -t arxiv-mcp-server .
-docker run -d \
-  --name arxiv-mcp-server \
-  -p 8000:8000 \
-  -v ./data:/app/data \
-  arxiv-mcp-server
-
-# 查看容器日志
-docker logs -f arxiv-mcp-server
-
-# 停止容器
-docker stop arxiv-mcp-server
+# 当前已在项目目录中
+# 查看帮助信息
+chmod +x scripts/show-help.sh
+./scripts/show-help.sh
 ```
 
 ## MCP服务器特性说明
@@ -126,12 +93,6 @@ python -m arxiv_mcp_server
 
 # 方法3: 使用uv工具
 uv tool run arxiv-mcp-server --storage-path /mnt/data/papers
-
-# 方法4: Docker环境变量
-docker run -d \
-  --name arxiv-mcp-server \
-  -e ARXIV_STORAGE_PATH=/app/data/papers \
-  arxiv-mcp-server
 ```
 
 ## 获取帮助信息
@@ -299,9 +260,6 @@ pip install -e .
 
 # uv工具部署
 uv tool upgrade arxiv-mcp-server
-
-# Docker部署
-./scripts/docker-build.sh
 ```
 
 ### Q6: 如何卸载服务
@@ -311,10 +269,6 @@ pip uninstall arxiv-mcp-server
 
 # uv工具卸载
 uv tool uninstall arxiv-mcp-server
-
-# Docker容器删除
-docker stop arxiv-mcp-server
-docker rm arxiv-mcp-server
 
 # 删除存储数据（可选）
 rm -rf ~/.arxiv-mcp-server
