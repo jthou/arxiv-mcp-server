@@ -200,6 +200,11 @@ Run the test suite:
 python -m pytest
 ```
 
+## 🧰 Additional Documentation
+
+- [Deployment Guide](docs/DEPLOYMENT.md) - Detailed deployment instructions
+- [VS Code Integration](docs/VS_CODE_INTEGRATION.md) - How to integrate with Visual Studio Code
+
 ## 🆘 Getting Help
 
 To view help information about the server, use the `--help` or `-h` flag:
