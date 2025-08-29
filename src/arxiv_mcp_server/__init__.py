@@ -3,6 +3,7 @@ Arxiv MCP Server initialization
 """
 
 from . import server
+from . import config
 import asyncio
 
 
@@ -11,4 +12,4 @@ def main():
     asyncio.run(server.main())
 
 
-__all__ = ["main", "server"]
+__all__ = ["main", "server", "config"]

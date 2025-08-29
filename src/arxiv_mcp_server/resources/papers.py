@@ -8,7 +8,7 @@ import aiofiles
 import logging
 from pydantic import AnyUrl
 import mcp.types as types
-from ..config import Settings
+from ..config import get_settings
 
 logger = logging.getLogger("arxiv-mcp-server")
 
@@ -18,7 +18,7 @@ class PaperManager:
 
     def __init__(self):
         """Initialize the paper management system."""
-        settings = Settings()
+        settings = get_settings()
         self.storage_path = Path(settings.STORAGE_PATH)
         self.storage_path.mkdir(parents=True, exist_ok=True)
         self.client = arxiv.Client()
