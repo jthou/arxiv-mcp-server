@@ -60,6 +60,25 @@ source .venv/bin/activate
 uv pip install -e ".[test]"
 ```
 
+### Docker Deployment
+
+For containerized deployment:
+
+```bash
+# Build and run using the provided script
+./scripts/docker-build.sh
+
+# Or build and run manually
+docker build -t arxiv-mcp-server .
+docker run -d \
+  --name arxiv-mcp-server \
+  -v ./data:/app/data \
+  arxiv-mcp-server
+
+# View container logs
+docker logs -f arxiv-mcp-server
+```
+
 ### 🔌 MCP Integration
 
 Add this configuration to your MCP client config file:
@@ -181,15 +200,12 @@ Run the test suite:
 python -m pytest
 ```
 
-## 📄 License
+## 🆘 Getting Help
 
-Released under the MIT License. See the LICENSE file for details.
+To view help information about the server, use the `--help` or `-h` flag:
 
----
+```bash
+python -m arxiv_mcp_server --help
+```
 
-<div align="center">
-
-Made with ❤️ by the Pearl Labs Team
-
-<a href="https://glama.ai/mcp/servers/04dtxi5i5n"><img width="380" height="200" src="https://glama.ai/mcp/servers/04dtxi5i5n/badge" alt="ArXiv Server MCP server" /></a>
-</div>
+Note that the server communicates via stdio and is designed to be used with MCP-compatible clients. It does not provide a web interface or CLI interface for direct user interaction.
