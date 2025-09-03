@@ -26,6 +26,7 @@ wheels/
 venv/
 env/
 ENV/
+.venv/
 
 # IDE
 .idea/
@@ -37,4 +38,7 @@ ENV/
 *.log
 
 # Local development settings
-.envtemp/
+.env
+
+# Temp directory for client examples
+temp/

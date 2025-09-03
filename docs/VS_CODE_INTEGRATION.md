@@ -29,7 +29,10 @@
                 "arxiv_mcp_server",
                 "--storage-path",
                 "~/Documents/arxiv-papers"
-            ]
+            ],
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/src"
+            }
         }
     }
 }
@@ -38,11 +41,12 @@
 3. 根据你的实际环境调整以下参数：
    - `command`: Python 解释器路径（如果不在 PATH 中，需要使用完整路径）
    - `args`: 命令行参数，特别是 `--storage-path` 的值应指向你希望存储论文的目录
+   - `env`: 环境变量，特别是 `PYTHONPATH` 应指向项目的src目录
 
 ### 方法二：项目级配置
 
 1. 在你的项目根目录创建 `.vscode/mcp.json` 文件
-2. 添加相同的配置内容：
+2. 添加以下配置内容：
 
 ```json
 {
@@ -54,7 +58,10 @@
                 "arxiv_mcp_server",
                 "--storage-path",
                 "./arxiv-papers"
-            ]
+            ],
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/src"
+            }
         }
     }
 }
@@ -69,6 +76,10 @@
 传递给 arxiv-mcp-server 的命令行参数：
 - `-m arxiv_mcp_server`: 指定要运行的 Python 模块
 - `--storage-path`: 指定论文存储目录的路径
+
+### env
+环境变量配置：
+- `PYTHONPATH`: Python模块搜索路径，必须包含项目的src目录
 
 ### storage-path 选项
 存储路径可以是：
@@ -98,6 +109,7 @@
    ```bash
    python -c "import arxiv_mcp_server; print('Module found')"
    ```
+3. 确保PYTHONPATH环境变量正确设置，包含项目的src目录
 
 ### 问题2：权限错误
 
@@ -141,9 +153,23 @@
 1. 检查扩展的 MCP 配置是否正确
 2. 在终端手动测试服务器启动：
    ```bash
-   python -m arxiv_mcp_server --storage-path ~/Documents/arxiv-papers
+   PYTHONPATH=src python -m arxiv_mcp_server --storage-path ~/Documents/arxiv-papers
    ```
 3. 查看是否有错误信息输出
+
+### 问题5：ModuleNotFoundError: No module named 'mcp.shared.message'
+
+**可能原因**: MCP库版本不兼容或安装不完整
+
+**解决方案**:
+1. 重新安装MCP依赖：
+   ```bash
+   pip install --force-reinstall mcp>=1.2.0
+   ```
+2. 或使用uv工具重新安装：
+   ```bash
+   uv pip install --force-reinstall mcp>=1.2.0
+   ```
 
 ## 高级配置
 
@@ -167,25 +193,7 @@
 }
 ```
 
-### 使用虚拟环境
 
-如果你在虚拟环境中安装了 arxiv-mcp-server，需要指定虚拟环境中的 Python 解释器：
-
-```json
-{
-    "mcpServers": {
-        "arxiv-mcp-server": {
-            "command": "/path/to/your/venv/bin/python",
-            "args": [
-                "-m",
-                "arxiv_mcp_server",
-                "--storage-path",
-                "~/Documents/arxiv-papers"
-            ]
-        }
-    }
-}
-```
 
 ## 更新配置
 

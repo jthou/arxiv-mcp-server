@@ -80,3 +80,11 @@
   - [✓] 4.1 记录测试结果
   - [✓] 4.2 分析失败用例
   - [✓] 4.3 生成测试报告
+
+## 任务6：修复VS Code MCP服务器启动问题
+- [✓] 创建详细的issue报告，描述问题、分析和解决方案
+  - [✓] 创建issue文件: `issues/001-vscode-mcp-server-startup-issue.md`
+  - [✓] 更新VS Code集成文档，提供更详细的配置说明
+  - [✓] 修复pyproject.toml配置确保包正确安装
+  - [✓] 更新MCP客户端配置示例
+  - [✓] 验证修复后的配置在VS Code中正常工作

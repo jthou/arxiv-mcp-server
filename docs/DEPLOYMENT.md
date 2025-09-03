@@ -22,25 +22,7 @@ pip install -e .
 python -m arxiv_mcp_server --storage-path /path/to/paper/storage
 ```
 
-### 2. 使用虚拟环境部署
-```bash
-# 当前已在项目目录中
-# 查看当前仓库信息
-git remote -v
-git status
-
-# 创建虚拟环境
-python -m venv .venv
-source .venv/bin/activate
-
-# 安装依赖
-pip install -e .
-
-# 运行服务
-python -m arxiv_mcp_server --storage-path /path/to/paper/storage
-```
-
-### 3. 使用uv工具部署
+### 2. 使用uv工具部署
 ```bash
 # 安装uv (如果尚未安装)
 # macOS: brew install uv
@@ -52,14 +34,6 @@ uv tool run arxiv-mcp-server --storage-path /path/to/paper/storage
 # 或者安装后运行
 uv tool install arxiv-mcp-server
 arxiv-mcp-server --storage-path /path/to/paper/storage
-```
-
-### 4. 使用show-help.sh脚本查看帮助
-```bash
-# 当前已在项目目录中
-# 查看帮助信息
-chmod +x scripts/show-help.sh
-./scripts/show-help.sh
 ```
 
 ## MCP服务器特性说明
@@ -97,19 +71,12 @@ uv tool run arxiv-mcp-server --storage-path /mnt/data/papers
 
 ## 获取帮助信息
 
-要查看服务器的帮助信息，可以使用以下任一方法：
+要查看服务器的帮助信息，可以使用以下方法：
 
-1. 使用 `--help` 或 `-h` 参数：
-   ```bash
-   python -m arxiv_mcp_server --help
-   ```
-
-2. 使用提供的脚本：
-   ```bash
-   ./scripts/show-help.sh
-   ```
-
-这将显示服务器的使用说明和配置选项。
+使用 `--help` 或 `-h` 参数：
+```bash
+python -m arxiv_mcp_server --help
+```
 
 ## 测试
 
@@ -252,11 +219,6 @@ cd /path/to/arxiv-mcp-server
 git pull origin main
 pip install -e .
 
-# 虚拟环境部署
-cd /path/to/arxiv-mcp-server
-git pull origin main
-source .venv/bin/activate
-pip install -e .
 
 # uv工具部署
 uv tool upgrade arxiv-mcp-server

@@ -20,197 +20,133 @@ The ArXiv MCP Server provides a bridge between AI assistants and arXiv's researc
 <a href="https://www.pulsemcp.com/servers/blazickjp-arxiv-mcp-server"><img src="https://www.pulsemcp.com/badge/top-pick/blazickjp-arxiv-mcp-server" width="400" alt="Pulse MCP Badge"></a>
 </div>
 
-## ✨ Core Features
+## 系统要求
 
-- 🔎 **Paper Search**: Query arXiv papers with filters for date ranges and categories
-- 📄 **Paper Access**: Download and read paper content
-- 📋 **Paper Listing**: View all downloaded papers
-- 🗃️ **Local Storage**: Papers are saved locally for faster access
-- 📝 **Prompts**: A Set of Research Prompts
+arxiv-mcp-server 需要以下环境：
 
-## 🚀 Quick Start
+- Python 3.11+
+- Git
+- curl
+- 可选: uv (Astral) (用于更快的依赖安装)
 
-### Installing via Smithery
+## 核心功能
 
-To install ArXiv Server for Claude Desktop automatically via [Smithery](https://smithery.ai/server/arxiv-mcp-server):
+arxiv-mcp-server 提供以下主要功能：
+
+- 🔎 **论文搜索**：支持关键词、时间范围、分类等条件的论文检索
+- 📄 **论文访问**：根据 arXiv ID 下载和阅读论文
+- 📋 **论文列表**：查看本地已下载的论文列表
+- 🗃️ **本地存储**：论文保存在本地以提高访问速度
+- 📝 **研究提示**：提供完整的论文分析流程提示
+
+## 部署选项
+
+### 本地系统级部署（推荐）
 
 ```bash
-npx -y @smithery/cli install arxiv-mcp-server --client claude
+# 当前已在项目目录中
+# 查看当前仓库信息
+git remote -v
+git status
+
+# 系统级安装依赖
+pip install -e .
+
+# 运行服务
+python -m arxiv_mcp_server --storage-path /path/to/paper/storage
 ```
 
-### Installing Manually
-Install using uv:
+### 使用 uv 工具部署
 
 ```bash
+# 安装 uv (如果尚未安装)
+# macOS: brew install uv
+# 其他系统: pip install uv
+
+# 直接运行（无需安装）
+uv tool run arxiv-mcp-server --storage-path /path/to/paper/storage
+
+# 或者安装后运行
 uv tool install arxiv-mcp-server
+arxiv-mcp-server --storage-path /path/to/paper/storage
 ```
 
-For development:
+## MCP 服务器特性说明
+
+arxiv-mcp-server 是一个 MCP（Model Context Protocol）服务器，它通过标准输入/输出与客户端通信，而不是作为一个独立的 Web 服务运行。启动服务后不会在终端显示运行信息，需要通过支持 MCP 协议的客户端（如 Claude Desktop）进行通信。
+
+## 配置选项
+
+### 命令行参数
+
+| 参数 | 描述 |
+|------|------|
+| `--storage-path` | 指定论文存储目录 |
+| `--help`, `-h` | 显示帮助信息 |
+
+### 环境变量
+
+| 变量名 | 默认值 | 描述 |
+|--------|--------|------|
+| `ARXIV_STORAGE_PATH` | ~/.arxiv-mcp-server/papers | 论文存储目录 |
+
+### 自定义配置示例
 
 ```bash
-# Clone and set up development environment
-git clone https://github.com/blazickjp/arxiv-mcp-server.git
-cd arxiv-mcp-server
+# 方法1: 使用命令行参数
+python -m arxiv_mcp_server --storage-path /mnt/data/papers
 
-# Create and activate virtual environment
-uv venv
-source .venv/bin/activate
+# 方法2: 设置环境变量
+export ARXIV_STORAGE_PATH=/mnt/data/papers
+python -m arxiv_mcp_server
 
-# Install with test dependencies
-uv pip install -e ".[test]"
+# 方法3: 使用 uv 工具
+uv tool run arxiv-mcp-server --storage-path /mnt/data/papers
 ```
 
-### Docker Deployment
+## 获取帮助信息
 
-For containerized deployment:
+要查看服务器的帮助信息，可以使用以下方法：
 
-```bash
-# Build and run using the provided script
-./scripts/docker-build.sh
-
-# Or build and run manually
-docker build -t arxiv-mcp-server .
-docker run -d \
-  --name arxiv-mcp-server \
-  -v ./data:/app/data \
-  arxiv-mcp-server
-
-# View container logs
-docker logs -f arxiv-mcp-server
-```
-
-### 🔌 MCP Integration
-
-Add this configuration to your MCP client config file:
-
-```json
-{
-    "mcpServers": {
-        "arxiv-mcp-server": {
-            "command": "uv",
-            "args": [
-                "tool",
-                "run",
-                "arxiv-mcp-server",
-                "--storage-path", "/path/to/paper/storage"
-            ]
-        }
-    }
-}
-```
-
-For Development:
-
-```json
-{
-    "mcpServers": {
-        "arxiv-mcp-server": {
-            "command": "uv",
-            "args": [
-                "--directory",
-                "path/to/cloned/arxiv-mcp-server",
-                "run",
-                "arxiv-mcp-server",
-                "--storage-path", "/path/to/paper/storage"
-            ]
-        }
-    }
-}
-```
-
-## 💡 Available Tools
-
-The server provides four main tools:
-
-### 1. Paper Search
-Search for papers with optional filters:
-
-```python
-result = await call_tool("search_papers", {
-    "query": "transformer architecture",
-    "max_results": 10,
-    "date_from": "2023-01-01",
-    "categories": ["cs.AI", "cs.LG"]
-})
-```
-
-### 2. Paper Download
-Download a paper by its arXiv ID:
-
-```python
-result = await call_tool("download_paper", {
-    "paper_id": "2401.12345"
-})
-```
-
-### 3. List Papers
-View all downloaded papers:
-
-```python
-result = await call_tool("list_papers", {})
-```
-
-### 4. Read Paper
-Access the content of a downloaded paper:
-
-```python
-result = await call_tool("read_paper", {
-    "paper_id": "2401.12345"
-})
-```
-
-## 📝 Research Prompts
-
-The server offers specialized prompts to help analyze academic papers:
-
-### Paper Analysis Prompt
-A comprehensive workflow for analyzing academic papers that only requires a paper ID:
-
-```python
-result = await call_prompt("deep-paper-analysis", {
-    "paper_id": "2401.12345"
-})
-```
-
-This prompt includes:
-- Detailed instructions for using available tools (list_papers, download_paper, read_paper, search_papers)
-- A systematic workflow for paper analysis
-- Comprehensive analysis structure covering:
-  - Executive summary
-  - Research context
-  - Methodology analysis
-  - Results evaluation
-  - Practical and theoretical implications
-  - Future research directions
-  - Broader impacts
-
-## ⚙️ Configuration
-
-Configure through environment variables:
-
-| Variable | Purpose | Default |
-|----------|---------|---------|
-| `ARXIV_STORAGE_PATH` | Paper storage location | ~/.arxiv-mcp-server/papers |
-
-## 🧪 Testing
-
-Run the test suite:
-
-```bash
-python -m pytest
-```
-
-## 🧰 Additional Documentation
-
-- [Deployment Guide](docs/DEPLOYMENT.md) - Detailed deployment instructions
-- [VS Code Integration](docs/VS_CODE_INTEGRATION.md) - How to integrate with Visual Studio Code
-
-## 🆘 Getting Help
-
-To view help information about the server, use the `--help` or `-h` flag:
-
+使用 `--help` 或 `-h` 参数：
 ```bash
 python -m arxiv_mcp_server --help
 ```
 
-Note that the server communicates via stdio and is designed to be used with MCP-compatible clients. It does not provide a web interface or CLI interface for direct user interaction.
+## 测试
+
+在部署后，建议运行测试以确保服务正常工作：
+
+```
+# 手动设置 PYTHONPATH
+PYTHONPATH=src python -m pytest
+```
+
+## 集成其他文档
+
+有关更详细的配置和使用信息，请参阅以下文档：
+
+- [VS Code Integration](docs/VS_CODE_INTEGRATION.md) - 如何与 Visual Studio Code 集成
+- [MCP stdio Server Principles](docs/MCP_STDIO_SERVER_PRINCIPLES.md) - MCP stdio 服务器设计原则
+
+## 常见问题
+
+### 服务启动后似乎"卡住"了
+
+这是正常现象。arxiv-mcp-server 是一个 MCP 服务器，通过标准输入/输出与客户端通信，不会在终端显示运行信息。要使用该服务，需要通过支持 MCP 协议的客户端（如 Claude Desktop）进行连接。
+
+### 如何验证服务是否正常运行
+
+由于 MCP 服务器的特性，无法直接通过终端查看运行状态。可以通过以下方式验证：
+
+1. 检查进程是否存在:
+   ```bash
+   ps aux | grep arxiv_mcp_server
+   ```
+
+2. 运行测试验证功能:
+   ```bash
+   python run_tests.py
+   ```
+
+3. 通过 MCP 客户端测试连接
