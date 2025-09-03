@@ -9,8 +9,7 @@
 MCP客户端通过标准输入/输出(stdio)与服务器进行通信，使用JSON-RPC协议格式交换消息。客户端需要正确处理消息的发送和接收，包括处理`JSONRPCMessage`包装。
 
 ## 示例客户端实现
-
-项目中的[temp/uw_sim_downloader.py](file:///System/Volumes/Data/justin/dev/arxiv-mcp-server-qoder/temp/uw_sim_downloader.py)文件是一个完整的MCP客户端示例，它演示了如何：
+MCP客户端程序，应该包括：
 
 1. 建立与服务器的连接
 2. 发送请求并接收响应
