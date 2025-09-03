@@ -128,6 +128,7 @@ PYTHONPATH=src python -m pytest
 
 - [VS Code Integration](docs/VS_CODE_INTEGRATION.md) - 如何与 Visual Studio Code 集成
 - [MCP stdio Server Principles](docs/MCP_STDIO_SERVER_PRINCIPLES.md) - MCP stdio 服务器设计原则
+- [MCP Client Example](docs/MCP_CLIENT_EXAMPLE.md) - MCP 客户端实现示例
 
 ## 常见问题
 
