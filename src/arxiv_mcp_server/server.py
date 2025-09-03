@@ -1,5 +1,4 @@
-"""
-Arxiv MCP Server (stdio only)
+"""Arxiv MCP Server (stdio only)
 ============================
 
 This module implements an MCP stdio server for interacting with arXiv.
@@ -10,11 +9,11 @@ import sys
 import mcp.types as types
 from typing import Dict, Any, List
 from mcp.server.stdio import stdio_server
-from mcp.shared.message import SessionMessage
+from mcp import ServerSession
 from mcp.types import JSONRPCRequest, JSONRPCNotification, JSONRPCResponse, JSONRPCError
 from .config import Settings
-from .tools import handle_search, handle_download, handle_list_papers, handle_read_paper
-from .tools import search_tool, download_tool, list_tool, read_tool
+from .tools import handle_search, handle_download, handle_list_papers, handle_read_paper, handle_list_tools
+from .tools import search_tool, download_tool, list_tool, read_tool, list_tools_tool
 from .prompts.handlers import list_prompts as handler_list_prompts
 from .prompts.handlers import get_prompt as handler_get_prompt
 
@@ -34,7 +33,7 @@ async def get_prompt(
 
 async def list_tools() -> List[types.Tool]:
     """List available arXiv research tools."""
-    return [search_tool, download_tool, list_tool, read_tool]
+    return [search_tool, download_tool, list_tool, read_tool, list_tools_tool]
 
 async def call_tool(name: str, arguments: Dict[str, Any]) -> List[types.TextContent]:
     """Handle tool calls for arXiv research functionality."""
@@ -49,11 +48,7 @@ async def call_tool(name: str, arguments: Dict[str, Any]) -> List[types.TextCont
         elif name == "read_paper":
             return await handle_read_paper(arguments)
         elif name == "list_tools":
-            tools = await list_tools()
-            return [types.TextContent(
-                type="text",
-                text="\n".join([f"{tool.name}: {tool.description}" for tool in tools])
-            )]
+            return await handle_list_tools(arguments)
         elif name == "list_prompts":
             prompts = await list_prompts()
             return [types.TextContent(
@@ -112,7 +107,7 @@ async def main():
                             logger.error(f"Invalid message format: {str(message)}")
                             continue
                         
-                        if not isinstance(message, SessionMessage):
+                        if not isinstance(message, ServerSession):
                             logger.error("Invalid message type received")
                             continue
                         
@@ -128,7 +123,7 @@ async def main():
                         )
                         
                         await write_stream.send(
-                            SessionMessage(
+                            ServerSession(
                                 JSONRPCResponse(
                                     jsonrpc="2.0",
                                     id=msg_dict.get('id'),
@@ -142,11 +137,11 @@ async def main():
                         break
                     except Exception as e:
                         logger.error(f"Error processing message: {str(e)}")
-                        if isinstance(message, SessionMessage) and hasattr(message.message, 'model_dump'):
+                        if isinstance(message, ServerSession) and hasattr(message.message, 'model_dump'):
                             msg_dict = message.message.model_dump()
                             if 'id' in msg_dict:
                                 await write_stream.send(
-                                    SessionMessage(
+                                    ServerSession(
                                         JSONRPCError(
                                             jsonrpc="2.0",
                                             id=msg_dict['id'],
@@ -164,3 +159,7 @@ async def main():
                 raise
     finally:
         logger.info("Server shutdown complete")
+
+if __name__ == "__main__":
+    import asyncio
+    asyncio.run(main())
