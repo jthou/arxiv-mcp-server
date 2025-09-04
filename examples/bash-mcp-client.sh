@@ -34,9 +34,29 @@ error() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] ERROR: $1" >&2 | tee -a "$LOG_FILE"
 }
 
+# 检查MCP服务器是否已运行
+check_mcp_server() {
+    # 检查是否有arxiv-mcp-server进程在运行
+    local existing_pid=$(ps aux | grep -v grep | grep "arxiv_mcp_server" | awk '{print $2}' | head -1)
+    
+    if [ ! -z "$existing_pid" ]; then
+        log "发现已运行的MCP服务器 (PID: $existing_pid)"
+        SERVER_PID="$existing_pid"
+        return 0
+    fi
+    
+    return 1
+}
+
 # 启动MCP服务器
 start_mcp_server() {
-    log "启动MCP服务器..."
+    # 首先检查是否已有服务器在运行
+    if check_mcp_server; then
+        log "使用已运行的MCP服务器"
+        return 0
+    fi
+    
+    log "启动新的MCP服务器..."
     
     mkdir -p "$TEST_DIR"
     export PYTHONPATH="$SCRIPT_DIR/../src:$PYTHONPATH"
@@ -67,10 +87,16 @@ start_mcp_server() {
 
 # 停止MCP服务器
 stop_mcp_server() {
+    # 只有在脚本启动的服务器才停止
     if [ ! -z "$SERVER_PID" ] && kill -0 $SERVER_PID 2>/dev/null; then
-        log "停止MCP服务器 (PID: $SERVER_PID)"
-        kill $SERVER_PID
-        wait $SERVER_PID 2>/dev/null
+        # 检查是否是脚本启动的服务器（通过检查管道文件）
+        if [ -p "$TEST_DIR/server_in" ] && [ -p "$TEST_DIR/server_out" ]; then
+            log "停止脚本启动的MCP服务器 (PID: $SERVER_PID)"
+            kill $SERVER_PID
+            wait $SERVER_PID 2>/dev/null
+        else
+            log "检测到外部MCP服务器，不进行停止操作"
+        fi
     fi
     
     # 清理管道文件
@@ -80,28 +106,54 @@ stop_mcp_server() {
 # 发送请求到服务器
 send_request() {
     local request="$1"
-    local pipe_in="$TEST_DIR/server_in"
-    local pipe_out="$TEST_DIR/server_out"
     
-    # 发送请求
-    echo "$request" > "$pipe_in" &
-    
-    # 读取响应（设置超时）
-    local response=$(/opt/homebrew/opt/coreutils/libexec/gnubin/timeout 5 cat "$pipe_out" 2>/dev/null)
-    local exit_code=$?
-    
-    if [ $exit_code -eq 124 ]; then
-        error "请求超时"
-        return 1
+    # 检查是否有管道文件（脚本启动的服务器）
+    if [ -p "$TEST_DIR/server_in" ] && [ -p "$TEST_DIR/server_out" ]; then
+        # 使用命名管道通信
+        local pipe_in="$TEST_DIR/server_in"
+        local pipe_out="$TEST_DIR/server_out"
+        
+        # 发送请求
+        echo "$request" > "$pipe_in" &
+        
+        # 读取响应（设置超时）
+        local response=$(/opt/homebrew/opt/coreutils/libexec/gnubin/timeout 5 cat "$pipe_out" 2>/dev/null)
+        local exit_code=$?
+        
+        if [ $exit_code -eq 124 ]; then
+            error "请求超时"
+            return 1
+        fi
+        
+        if [ -z "$response" ]; then
+            error "未收到响应"
+            return 1
+        fi
+        
+        echo "$response"
+        return 0
+    else
+        # 使用直接stdio通信（外部服务器）
+        log "使用直接stdio通信" >&2
+        local response=$(echo "$request" | /opt/homebrew/opt/coreutils/libexec/gnubin/timeout 10 python -m arxiv_mcp_server --storage-path "$TEST_DIR" 2>/dev/null)
+        local exit_code=$?
+        
+        if [ $exit_code -eq 124 ]; then
+            error "请求超时"
+            return 1
+        fi
+        
+        if [ -z "$response" ]; then
+            error "未收到响应"
+            return 1
+        fi
+        
+        # 清理响应中的日志信息，只保留JSON
+        local clean_response=$(echo "$response" | sed 's/^\[.*\] //' | grep -E '^\{.*\}$' | head -1)
+        
+        echo "$clean_response"
+        return 0
     fi
-    
-    if [ -z "$response" ]; then
-        error "未收到响应"
-        return 1
-    fi
-    
-    echo "$response"
-    return 0
 }
 
 # 测试MCP服务器连接
